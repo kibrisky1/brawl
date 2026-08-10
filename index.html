@@ -1,115 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Tap to Play</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  #tap-target {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 9999;
-  }
-
-  #hint {
-    color: rgba(255, 255, 255, 0.35);
-    font-family: system-ui, sans-serif;
-    font-size: clamp(14px, 4vw, 20px);
-    letter-spacing: 0.05em;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-
-  #hint.hidden {
-    opacity: 0;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>...</title>
+    <style>
+        /* Make the entire page black and hide overflow */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            overflow: hidden;
+            /* Prevent text selection */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* An invisible overlay to capture the first tap */
+        #tap-target {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<div id="tap-target" role="button" tabindex="0" aria-label="Tap to start">
-  <span id="hint">tap to start</span>
-</div>
+    <div id="tap-target"></div>
 
-<script>
-(() => {
-  const tapTarget = document.getElementById('tap-target');
-  const hint = document.getElementById('hint');
-  const audio = new Audio('gg.mp3');
-  audio.volume = 1.0;
-  audio.loop = true;
-  audio.preload = 'auto';
+    <script>
+        const tapTarget = document.getElementById('tap-target');
+        const audio = new Audio('gg.mp3');
+        
+        // Maximize the HTML5 audio element's volume (relative to system volume)
+        audio.volume = 1.0;
+        audio.loop = true; // Loops the audio continuously
 
-  let started = false;
+        tapTarget.addEventListener('click', function() {
+            // Attempt to go Fullscreen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+                document.documentElement.msRequestFullscreen();
+            }
 
-  async function requestFullscreen() {
-    const el = document.documentElement;
-    const method =
-      el.requestFullscreen ||
-      el.webkitRequestFullscreen ||
-      el.msRequestFullscreen;
-    if (!method) return;
-    try {
-      await method.call(el);
-    } catch (err) {
-      console.log('Fullscreen request failed:', err.message);
-    }
-  }
-
-  async function start() {
-    if (started) return;
-    started = true;
-
-    hint.classList.add('hidden');
-
-    // Kick off fullscreen and playback together; don't let one block the other.
-    await Promise.allSettled([requestFullscreen(), audio.play()]);
-
-    if (audio.paused) {
-      // Autoplay/gesture policies can still block playback on some browsers;
-      // let the user try again instead of silently failing.
-      started = false;
-      hint.textContent = 'tap to retry';
-      hint.classList.remove('hidden');
-      return;
-    }
-
-    tapTarget.removeEventListener('click', start);
-    tapTarget.removeEventListener('keydown', onKeydown);
-    tapTarget.style.cursor = 'default';
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      start();
-    }
-  }
-
-  tapTarget.addEventListener('click', start);
-  tapTarget.addEventListener('keydown', onKeydown);
-
-  audio.addEventListener('error', () => {
-    hint.textContent = 'audio failed to load';
-    hint.classList.remove('hidden');
-  });
-})();
-</script>
+            // Play the audio
+            audio.play().catch(error => {
+                console.log("Audio playback failed:", error);
+            });
+            
+            // Remove the tap target so it doesn't interfere anymore
+            tapTarget.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
