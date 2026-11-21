@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NFC Vibration</title>
+</head>
+<body>
+  <script>
+    // Trigger immediately when the page opens from the NFC tag.
+    // Vibration intensity is controlled by the phone, not by web code.
+    if ("vibrate" in navigator) {
+      navigator.vibrate([500, 100, 500, 100, 500, 100, 500, 100, 500, 100, 500, 100, 500, 100, 500]);
+    }
+  </script>
+  <p>If vibration did not start automatically, your browser or phone may block it without interaction.</p>
+</body>
+</html>
